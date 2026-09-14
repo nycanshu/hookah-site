@@ -1,0 +1,315 @@
+/* Hookah Baar — "Ink wash" theme. Charcoal, cool gray and soft ivory with a
+   slate-blue accent, set in Lora. Softly rounded ivory cards, hairline frames,
+   quiet diffuse shadows. No hard offset blocks, no sharp corners. */
+
+:root {
+  --charcoal:  #3C3C3C;
+  --ink:       #4A4A4A;
+  --gray:      #CBCBCB;
+  --gray-2:    #E7E7DF;
+  --ivory:     #FFFFE3;
+  --slate:     #6D8196;
+  --slate-deep:#556478;
+
+  --serif: 'Lora', Georgia, 'Times New Roman', serif;
+  --hair: 1px solid rgba(60, 60, 60, 0.85);
+  --r: 14px; --r-sm: 10px;
+  --shadow-card: 0 14px 34px rgba(35, 35, 35, 0.20);
+  --shadow-soft: 0 8px 20px rgba(35, 35, 35, 0.16);
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--gray); color: var(--ink); font-family: var(--serif); overflow: hidden; overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
+#stage { display: block; position: fixed; inset: 0; width: 100%; height: 100%; touch-action: none; }
+#cam { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+
+.vignette { position: fixed; inset: 0; pointer-events: none; z-index: 1; background: radial-gradient(125% 105% at 50% 40%, transparent 56%, rgba(40, 40, 40, 0.28) 100%); }
+.grain { position: fixed; inset: 0; pointer-events: none; z-index: 2; opacity: 0.10; mix-blend-mode: soft-light;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+.noscript { position: fixed; z-index: 5; inset: 0; display: grid; place-items: center; }
+
+/* ---------------------------------------------------------------- top bar */
+.bar { position: fixed; z-index: 4; top: calc(18px + var(--safe-top)); left: 0; right: 0; display: flex; justify-content: space-between; align-items: flex-start; padding: 0 20px; gap: 16px; pointer-events: none; }
+.bar > * { pointer-events: auto; }
+
+.brand { display: inline-flex; align-items: center; gap: 12px; text-decoration: none; color: var(--ivory); }
+.brand .mark { flex: none; filter: drop-shadow(0 2px 10px rgba(30, 30, 30, 0.6)); }
+.wordmark { display: flex; flex-direction: column; }
+.wordmark .name { font-family: var(--serif); font-weight: 600; font-size: 30px; line-height: 0.98; letter-spacing: -0.01em; text-shadow: 0 2px 14px rgba(25, 25, 25, 0.8), 0 0 3px rgba(25, 25, 25, 0.65); }
+.wordmark .name em { font-style: italic; font-weight: 500; color: #cfd6df; }
+.wordmark .tagline { margin-top: 6px; font-family: var(--serif); font-weight: 500; font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--ivory); opacity: 0.85; text-shadow: 0 1px 8px rgba(25, 25, 25, 0.85); }
+
+/* Guide: top-right type over the scene, so it never covers your face. A soft
+   wash falls from the top edge so the words read over any picture. */
+.scrim { position: fixed; z-index: 3; left: 0; right: 0; top: 0; height: 34vh; pointer-events: none;
+  background: linear-gradient(to bottom, rgba(18, 18, 24, 0.62) 0%, rgba(18, 18, 24, 0.34) 45%, rgba(18, 18, 24, 0.08) 78%, transparent 100%); }
+
+.coach { width: min(370px, 52vw); text-align: right; pointer-events: none; }
+.coach[hidden] { display: none; }
+.coach-rule { display: none; }
+.coach-head { display: flex; justify-content: flex-end; align-items: baseline; gap: 10px; }
+.coach .step { font-weight: 600; font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase; color: #c9d2dc; text-shadow: 0 1px 9px rgba(18, 18, 24, 0.9); }
+.coach .state { font-weight: 500; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ivory); opacity: 0.82; }
+.coach .hint { margin: 8px 0 12px auto; font-weight: 500; font-size: clamp(17px, 1.55vw, 21px); line-height: 1.3; letter-spacing: -0.005em; color: var(--ivory); text-shadow: 0 2px 16px rgba(18, 18, 24, 0.95), 0 0 3px rgba(18, 18, 24, 0.8); min-height: 2.6em; }
+.coach .hint.soft { font-style: italic; font-weight: 400; opacity: 0.92; }
+.gauge { display: flex; align-items: center; justify-content: flex-end; }
+.meter { position: relative; width: 150px; height: 3px; background: rgba(255, 255, 227, 0.32); overflow: hidden; }
+.meter span { display: block; height: 100%; width: 0; background: var(--slate); transition: width .12s linear; }
+.meter.loading span { background: rgba(255, 255, 227, 0.8); }
+.coach .debug { margin: 9px 0 0; font-size: 11px; color: var(--ivory); opacity: 0.8; letter-spacing: 0.02em; text-shadow: 0 1px 7px rgba(18, 18, 24, 0.85); }
+
+/* A new instruction lifts and fades in so a change is noticed. */
+@keyframes caption-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.coach .hint.enter, .coach .step.enter { animation: caption-in .28s cubic-bezier(.2, .7, .3, 1) both; }
+
+/* Buttons: softly rounded, filled or outlined, a gentle lift on hover. */
+.btn { font-family: var(--serif); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; border: var(--hair); border-radius: var(--r-sm); cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; transition: transform .16s ease, box-shadow .16s ease, background .16s ease, color .16s ease; }
+.btn-ghost { flex: none; font-size: 11px; letter-spacing: 0.14em; padding: 2px 0; color: var(--ivory); background: transparent; border: 0; border-radius: 0; text-shadow: 0 1px 8px rgba(18, 18, 24, 0.85); }
+.btn-ghost:hover { color: #c9d2dc; text-decoration: underline; text-underline-offset: 4px; }
+.btn-cta { width: 100%; font-size: 14px; padding: 16px 18px; color: var(--ivory); background: var(--slate); border-color: var(--slate-deep); box-shadow: var(--shadow-soft); }
+.btn-cta:hover { background: var(--slate-deep); transform: translateY(-2px); box-shadow: 0 12px 26px rgba(35, 35, 35, 0.24); }
+.btn-cta:active { transform: translateY(0); box-shadow: var(--shadow-soft); }
+.btn-cta:disabled { background: var(--gray); color: #6f6f6f; border-color: var(--gray); box-shadow: none; cursor: progress; transform: none; }
+.btn:focus-visible, .foot a:focus-visible { outline: 2px solid var(--slate); outline-offset: 3px; }
+
+/* --------------------------------------------------------------- intro sheet */
+.sheet { position: fixed; z-index: 4; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(500px, calc(100vw - 36px)); padding: 34px 34px 28px; background: var(--ivory); border: var(--hair); border-radius: var(--r); box-shadow: 0 30px 70px rgba(30, 30, 30, 0.34); transition: opacity .3s ease, transform .3s ease; }
+.sheet[hidden] { display: none; }
+.sheet.leaving { opacity: 0; transform: translate(-50%, -47%); pointer-events: none; }
+.eyebrow { display: flex; align-items: center; gap: 9px; margin: 0 0 16px; font-size: 11px; font-weight: 600; letter-spacing: 0.24em; text-transform: uppercase; color: var(--slate-deep); }
+.eyebrow .tick { width: 8px; height: 8px; border-radius: 50%; background: var(--slate); display: inline-block; }
+.eyebrow .badge { margin-left: auto; padding: 3px 9px; border: 1.5px solid var(--charcoal); border-radius: 999px; font-size: 11px; letter-spacing: 0.12em; color: var(--charcoal); }
+.age-q { margin: 0 0 8px; font-size: 20px; font-weight: 600; color: var(--charcoal); }
+.age .fine { margin: 0 0 18px; font-style: normal; }
+.age .fine b { color: var(--charcoal); font-weight: 600; }
+.age-actions { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: stretch; }
+.age-actions .btn-ghost { padding: 0 22px; font-size: 13px; color: var(--charcoal); background: transparent; border: var(--hair); border-radius: var(--r-sm); text-shadow: none; }
+.age-actions .btn-ghost:hover { background: var(--charcoal); color: var(--ivory); text-decoration: none; }
+.age[hidden], .ready[hidden] { display: none; }
+.sheet h1 { margin: 0 0 24px; font-family: var(--serif); font-size: clamp(34px, 6vw, 50px); line-height: 1.03; font-weight: 600; letter-spacing: -0.02em; color: var(--charcoal); }
+.sheet h1 em { font-style: italic; font-weight: 500; color: var(--slate); }
+.steps { margin: 0 0 26px; padding: 24px 0 4px; list-style: none; display: grid; gap: 16px; border-top: var(--hair); }
+.steps li { display: flex; gap: 15px; align-items: flex-start; font-size: 15px; line-height: 1.5; color: var(--ink); }
+.steps .num { flex: none; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--slate); color: var(--ivory); font-weight: 600; font-size: 13px; font-style: italic; }
+.steps b { color: var(--charcoal); font-weight: 600; }
+.fine { margin: 16px 0 0; font-size: 13px; font-style: italic; line-height: 1.5; color: #6f6f6f; }
+.fine.error { color: #9a4a3a; font-weight: 600; font-style: normal; }
+
+/* --------------------------------------------------------------- footer */
+.foot { position: fixed; z-index: 4; left: 0; right: 0; bottom: calc(16px + var(--safe-bottom)); display: flex; justify-content: center; align-items: center; gap: 10px; pointer-events: none; }
+/* Legal line lives in the bottom-right corner, out of the way of the pills. */
+.foot .legal { position: absolute; right: 18px; bottom: 0; margin: 0; max-width: 34vw; text-align: right; font-size: 11px; line-height: 1.45; letter-spacing: 0.04em; color: var(--ivory); opacity: 0.85; text-shadow: 0 1px 8px rgba(18, 18, 24, 0.9); }
+.foot-btn, .foot a { pointer-events: auto; display: inline-flex; align-items: center; gap: 9px; font-family: var(--serif); font-size: 13px; font-weight: 500; letter-spacing: 0.01em; color: var(--charcoal); text-decoration: none; background: var(--ivory); border: var(--hair); border-radius: 999px; padding: 9px 16px 9px 18px; transition: background .16s ease, color .16s ease; }
+.foot-btn { font-family: var(--serif); font-size: 13px; font-weight: 500; letter-spacing: 0.01em; color: var(--charcoal); background: var(--ivory); border: var(--hair); border-radius: 999px; padding: 9px 18px; cursor: pointer; transition: background .16s ease, color .16s ease; }
+.foot-btn:hover, .foot a:hover { background: var(--charcoal); color: var(--ivory); }
+.foot-btn:focus-visible { outline: 2px solid var(--slate); outline-offset: 3px; }
+.foot .li { flex: none; color: var(--slate); transition: color .16s ease; }
+.foot a:hover .li { color: var(--ivory); }
+.heart { color: var(--slate); display: inline-block; }
+.foot a:hover .heart { color: var(--ivory); }
+
+/* --------------------------------------------------------------- responsive */
+@media (max-width: 680px) {
+  .bar { flex-direction: column; align-items: stretch; gap: 10px; padding: 0 14px; top: calc(12px + var(--safe-top)); }
+  .brand { align-self: flex-start; }
+  .wordmark .name { font-size: 24px; }
+  .scrim { height: 40vh; }
+  .coach { width: auto; text-align: left; }
+  .coach-head, .gauge { justify-content: flex-start; }
+  .coach .hint { margin: 7px auto 11px 0; font-size: 17px; min-height: 0; max-width: 22em; }
+  .sheet { top: auto; bottom: calc(58px + var(--safe-bottom)); left: 14px; right: 14px; width: auto; transform: none; padding: 26px 22px 22px; }
+  .foot { flex-wrap: wrap; padding: 0 14px; }
+  .foot .legal { position: static; flex-basis: 100%; max-width: none; text-align: center; margin-bottom: 2px; }
+  .sheet.leaving { transform: translateY(14px); }
+}
+@media (max-width: 400px) { .wordmark .tagline { display: none; } }
+@media (prefers-reduced-motion: reduce) { .btn, .foot a, .foot-btn, .sheet { transition: none; } .btn-cta:hover { transform: none; }
+  .coach .hint.enter, .coach .step.enter { animation: none; } }
+
+/* The flavour bar: illustrated tins, quiet paper, a little house ritual. */
+.flavour-dock { position: fixed; right: 24px; bottom: calc(32px + var(--footer-height, 50px) + var(--safe-bottom)); z-index: 4; }
+.flavour-dock[hidden] { display: none; }
+.flavour-open { display: flex; gap: 13px; align-items: center; padding: 12px 17px 12px 12px; min-width: 245px; color: var(--ink); background: var(--ivory); border: var(--hair); border-radius: 14px; box-shadow: var(--shadow-card); cursor: pointer; font-family: var(--serif); text-align: left; transition: transform .2s, box-shadow .2s; }
+.flavour-open:hover { transform: translateY(-3px); box-shadow: 0 18px 40px #23232340; }
+.intro-flavour-open { width: 100%; min-width: 0; margin: 0 0 12px; padding: 13px 16px; box-shadow: none; background: #6d81960a; border-color: #6d819645; }
+.intro-flavour-title { font-size: 15px; font-weight: 600; }
+.intro-flavour-current { font-size: 11px; color: var(--slate-deep); }
+.sheet { max-height: calc(100dvh - 100px - var(--safe-top) - var(--safe-bottom)); overflow-y: auto; }
+.flavour-icon { display: grid; place-items: center; width: 40px; height: 44px; color: var(--flavour-accent); border-right: 1px solid #4a4a4a25; padding-right: 9px; }
+.flavour-icon svg { width: 34px; height: 36px; }
+.flavour-open-copy { display: flex; flex: 1; flex-direction: column; gap: 4px; }
+.flavour-eyebrow { font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: .18em; }
+#flavour-current { font-size: 17px; font-weight: 600; }
+.flavour-open-action { align-self: flex-end; padding-bottom: 3px; font-size: 11px; color: var(--flavour-accent); }
+.flavour-toast { position: absolute; right: 0; bottom: calc(100% + 12px); width: max-content; max-width: min(320px, calc(100vw - 32px)); margin: 0; padding: 13px 16px; border: 1px solid #ffffff25; border-radius: 10px; background: #30322ff0; color: var(--ivory); box-shadow: var(--shadow-soft); font-size: 13px; line-height: 1.6; opacity: 0; transform: translateY(6px); transition: opacity .25s, transform .25s; pointer-events: none; }
+.flavour-toast.visible { opacity: 1; transform: none; }
+.flavour-dialog { padding: 0; border: 0; background: transparent; color: var(--ink); width: min(620px, calc(100vw - 36px)); max-height: calc(100dvh - 36px); overflow: auto; overscroll-behavior: contain; border-radius: 18px; box-shadow: 0 30px 100px #14141866; }
+.flavour-dialog::backdrop { background: #16192285; backdrop-filter: blur(5px); }
+.flavour-dialog[open] { animation: flavour-arrive .28s ease-out both; }
+.flavour-card { padding: 24px 32px 18px; background: var(--ivory); border: var(--hair); border-radius: 18px; }
+.flavour-menu-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: #74756a; }
+.flavour-close { width: 36px; height: 36px; flex: none; display: grid; place-items: center; border: 1px solid #4a4a4a30; background: transparent; border-radius: 50%; font-family: var(--serif); font-size: 25px; color: var(--ink); cursor: pointer; }
+.flavour-close:hover { background: #4a4a4a0c; }
+.flavour-card h2 { margin: 9px 0 12px; font-size: clamp(28px, 4vw, 37px); font-weight: 500; letter-spacing: -.05em; line-height: 1.15; }
+.flavour-card h2 em { color: var(--slate-deep); font-weight: 400; }
+.flavour-description { font-size: 13px; color: #737367; line-height: 1.7; margin: 0 0 23px; }
+.flavour-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 18px; row-gap: 23px; }
+.flavour-choice { position: relative; min-width: 0; padding: 0; border: 0; background: transparent; color: var(--ink); font-family: var(--serif); text-align: left; cursor: pointer; border-radius: 9px; }
+.flavour-tin { display: flex; align-items: center; justify-content: center; flex-direction: column; height: 139px; padding: 12px 5px; border: 1px solid #4a4a4a30; border-radius: var(--r); color: var(--tin); background: var(--tin-paper); box-shadow: 0 5px 14px #23232308; transition: transform .24s, box-shadow .24s; }
+.tin-art { width: 64px; height: 64px; margin: 0 0 10px; }
+.tin-art svg { width: 100%; height: 100%; }
+.tin-label { font-size: 13px; font-style: italic; font-weight: 600; }
+.flavour-choice:hover .flavour-tin { transform: translateY(-2px); box-shadow: var(--shadow-soft); }
+.flavour-choice[aria-pressed="true"] .flavour-tin { outline: 2px solid var(--tin); outline-offset: 3px; }
+.flavour-choice-name { display: flex; align-items: baseline; justify-content: space-between; gap: 3px; margin: 10px 0 3px; font-size: 13px; font-weight: 600; }
+.flavour-check { opacity: 0; color: var(--tin); }
+.flavour-choice[aria-pressed="true"] .flavour-check { opacity: 1; }
+.flavour-note { display: block; color: #75756c; font-size: 10px; line-height: 1.5; }
+.flavour-menu-bottom { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 24px; padding-top: 16px; border-top: 1px solid #4a4a4a25; }
+.flavour-menu-bottom > span { font-size: 11px; font-style: italic; color: #75756c; }
+.flavour-menu-bottom button { min-height: 38px; padding: 6px 12px; background: transparent; color: var(--slate-deep); border: 1px solid #6d819645; border-radius: 999px; font-family: var(--serif); font-size: 11px; cursor: pointer; }
+.flavour-menu-bottom button:hover { background: #6d81960e; }
+.flavour-open:focus-visible, .flavour-card button:focus-visible { outline: 2px solid var(--slate-deep); outline-offset: 6px; }
+.meter span { background: var(--flavour-accent, var(--slate)); }
+@keyframes flavour-arrive { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@media (max-width: 680px) {
+  /* Both docks become thumbnails on a phone: the flavour tin and the hookah
+     itself, stacked in the corner, so neither eats the scene. */
+  .flavour-dock { right: 14px; bottom: calc(32px + var(--footer-height, 75px) + var(--safe-bottom)); }
+  .flavour-dock .flavour-open { min-width: 0; padding: 9px; gap: 0; }
+  .flavour-dock .flavour-open-copy, .flavour-dock .flavour-open-action { display: none; }
+  .flavour-dock .flavour-icon { border-right: 0; padding-right: 0; width: 34px; }
+  .sheet { bottom: calc(32px + var(--footer-height, 75px) + var(--safe-bottom)); max-height: calc(100dvh - 64px - var(--footer-height, 75px) - var(--safe-top) - var(--safe-bottom)); }
+  .flavour-open { min-width: 205px; padding: 9px 12px 9px 9px; gap: 9px; }
+  #flavour-current { font-size: 15px; }
+  .flavour-dialog { width: 100%; max-width: none; max-height: calc(100dvh - 18px - var(--safe-top)); margin: auto 0 0; border-radius: 22px 22px 0 0; }
+  .flavour-card { border-radius: 22px 22px 0 0; padding: 18px 22px calc(16px + var(--safe-bottom)); }
+  .flavour-grid { gap: 18px 12px; }
+  .flavour-tin { height: 124px; }
+  .tin-art { width: 53px; height: 53px; }
+  .tin-label { font-size: 11px; }
+  .flavour-choice-name { font-size: 11px; }
+  .flavour-note { font-size: 9px; }
+  .flavour-description { margin-bottom: 20px; }
+  .flavour-menu-bottom { margin-top: 20px; }
+}
+@media (max-width: 360px) {
+  .flavour-card { padding-left: 16px; padding-right: 16px; }
+  .flavour-grid { column-gap: 10px; }
+  .tin-label { font-size: 10px; }
+  .flavour-open-action { display: none; }
+  .flavour-open { min-width: 168px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .flavour-dialog[open] { animation: none; }
+  .flavour-open, .flavour-tin, .flavour-toast { transition: none; }
+  .flavour-open:hover, .flavour-choice:hover .flavour-tin { transform: none; }
+}
+
+/* One scrollable collection; the bowl setup stays below it. */
+.flavour-dialog .flavour-card { display: flex; flex-direction: column; max-height: calc(100dvh - 36px); box-sizing: border-box; }
+.flavour-card > :not(.flavour-grid) { flex-shrink: 0; }
+.flavour-scroll-hint { margin: -10px 0 10px; font-size: 10px; color: #737367; }
+.flavour-grid { min-height: 110px; max-height: 340px; overflow-y: scroll; overscroll-behavior: contain; scrollbar-gutter: stable; scrollbar-width: thin; scrollbar-color: #858571 #e6e6d4; padding: 6px 12px 8px 5px; }
+.flavour-grid::-webkit-scrollbar { width: 7px; }
+.flavour-grid::-webkit-scrollbar-track { background: #e6e6d4; border-radius: 8px; }
+.flavour-grid::-webkit-scrollbar-thumb { background: #858571; border-radius: 8px; }
+.flavour-choice[aria-disabled="true"] .flavour-tin { opacity: .55; }
+.flavour-setup { border-top: var(--hair); padding-top: 12px; margin-top: 14px; }
+.flavour-selection-status { margin: 0 0 9px; color: #737367; font-size: 12px; line-height: 1.5; }
+.flavour-picked { display: flex; flex-wrap: wrap; gap: 7px; }
+.flavour-picked button { display: flex; align-items: center; gap: 10px; padding: 7px 11px; border: 1px solid var(--chip-accent); color: var(--ink); background: transparent; border-radius: 999px; font: inherit; font-size: 12px; cursor: pointer; }
+.flavour-picked button > :last-child { color: var(--chip-accent); font-size: 17px; }
+#mix-panel { margin-top: 13px; }
+.mix-proportions { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; }
+#mix-ratio { width: 100%; margin: 10px 0 5px; accent-color: var(--slate-deep); cursor: pointer; }
+.flavour-surprise-quote { margin: 13px 0 0; font-size: 13px; line-height: 1.5; color: #737367; }
+.flavour-surprise-quote br { display: none; }
+.flavour-surprise-quote em { color: var(--slate-deep); }
+.flavour-actions { display: flex; gap: 8px; }
+.flavour-menu-bottom { margin-top: 14px; padding-top: 12px; }
+.flavour-menu-bottom #flavour-apply { background: var(--ink); color: var(--ivory); }
+.flavour-menu-bottom #flavour-apply:disabled { opacity: .45; cursor: default; }
+.flavour-card input:focus-visible { outline: 2px solid var(--slate-deep); outline-offset: 4px; }
+.flavour-dock { max-width: calc(100vw - 28px); }
+.flavour-dock .flavour-open { max-width: 100%; }
+.flavour-open-copy { min-width: 0; overflow-wrap: anywhere; }
+@media (max-width: 620px) {
+  .flavour-dialog .flavour-card { max-height: calc(100dvh - 18px - var(--safe-top)); }
+}
+@media (max-height: 600px) {
+  .flavour-dialog .flavour-card { max-height: none; }
+  .flavour-grid { max-height: 180px; }
+}
+@media (max-width: 380px) {
+  .flavour-menu-bottom { flex-wrap: wrap; }
+  .flavour-picked button { font-size: 11px; padding: 5px 8px; }
+  .flavour-surprise-quote { font-size: 12px; }
+}
+
+/* ---- The rack: pick your hookah ------------------------------------------
+   Mirrors the flavour dock, but sits bottom-left, on the side of the screen
+   where the hookah actually stands. Every preview is drawn by the real
+   renderer, so a card can never disagree with the scene. */
+/* Under the wordmark, on the hookah's side of the screen: the bottom-left
+   corner is where the hookah itself stands, and a dock there covers it. */
+.hookah-dock { position: fixed; left: 24px; top: calc(94px + var(--safe-top)); z-index: 4; max-width: calc(100vw - 28px); }
+.hookah-dock[hidden] { display: none; }
+.hookah-dock .flavour-open { max-width: 100%; min-width: 232px; }
+.hookah-toast { right: auto; left: 0; top: calc(100% + 12px); bottom: auto; }
+.hookah-icon-wrap { display: grid; place-items: center; width: 40px; height: 44px; border-right: 1px solid #4a4a4a25; padding-right: 9px; }
+.hookah-icon { display: block; width: 32px; height: 44px; }
+.hookah-open .flavour-open-action { color: var(--slate-deep); }
+
+.hookah-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 18px; row-gap: 22px;
+  min-height: 110px; max-height: 340px; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable;
+  scrollbar-width: thin; scrollbar-color: #858571 #e6e6d4; padding: 6px 12px 8px 5px; }
+.hookah-grid::-webkit-scrollbar { width: 7px; }
+.hookah-grid::-webkit-scrollbar-track { background: #e6e6d4; border-radius: 8px; }
+.hookah-grid::-webkit-scrollbar-thumb { background: #858571; border-radius: 8px; }
+.hookah-choice { min-width: 0; padding: 0; border: 0; background: transparent; color: var(--ink); font-family: var(--serif); text-align: left; cursor: pointer; border-radius: 9px; }
+.hookah-plinth { display: block; height: 152px; padding: 8px; border: 1px solid #4a4a4a30; border-radius: var(--r);
+  background: linear-gradient(180deg, #9396ad 0%, #8a8da6 46%, #7f8299 100%); box-shadow: 0 5px 14px #23232308; transition: transform .24s, box-shadow .24s; }
+.hookah-plinth canvas { display: block; width: 100%; height: 100%; }
+.hookah-choice:hover .hookah-plinth { transform: translateY(-2px); box-shadow: var(--shadow-soft); }
+.hookah-choice[aria-checked="true"] .hookah-plinth { outline: 2px solid var(--slate-deep); outline-offset: 3px; }
+.hookah-choice-name { display: flex; align-items: baseline; justify-content: space-between; gap: 3px; margin: 10px 0 3px; font-size: 13px; font-weight: 600; }
+.hookah-check { opacity: 0; color: var(--slate-deep); }
+.hookah-choice[aria-checked="true"] .hookah-check { opacity: 1; }
+.hookah-note { display: block; color: #75756c; font-size: 10px; line-height: 1.5; }
+.hookah-choice:focus-visible { outline: 2px solid var(--slate-deep); outline-offset: 4px; }
+
+@media (max-width: 760px) {
+  /* Two docks will not fit side by side on a phone, so the rack keeps only its
+     thumbnail: a picture of the hookah you are smoking, which is label enough. */
+  /* The coach caption owns the top of a phone screen, so the rack stacks
+     directly above the flavour dock instead and keeps both thumbs busy. */
+  .hookah-dock { left: auto; right: 14px; top: auto;
+    bottom: calc(32px + var(--footer-height, 75px) + var(--safe-bottom) + 74px); }
+  .hookah-toast { left: auto; right: 0; top: auto; bottom: calc(100% + 12px); }
+  .hookah-dock .flavour-open { min-width: 0; padding: 9px; gap: 0; }
+  .hookah-dock .flavour-open-copy, .hookah-dock .flavour-open-action { display: none; }
+  .hookah-icon-wrap { border-right: 0; padding-right: 0; width: 34px; }
+  .hookah-grid { column-gap: 10px; max-height: 260px; }
+  .hookah-plinth { height: 132px; }
+  .hookah-choice-name { font-size: 11px; }
+  .hookah-note { font-size: 9px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hookah-plinth { transition: none; }
+  .hookah-choice:hover .hookah-plinth { transform: none; }
+}
+
+/* Two pickers in the intro sheet. On a short screen they sit side by side,
+   or the second one pushes "Turn on my camera" below the fold. */
+.intro-picks { display: grid; gap: 0; }
+@media (max-height: 760px) {
+  .intro-picks { grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  /* The dock rule sets a min-width for the floating pill; inside the grid
+     that forces the pair wider than the sheet. */
+  .intro-picks .intro-flavour-open { margin: 0; padding: 10px 12px; min-width: 0; }
+  .intro-picks .intro-flavour-title { font-size: 13px; }
+  .intro-picks .intro-flavour-current { font-size: 10px; }
+  .intro-picks .flavour-open > [aria-hidden="true"] { display: none; }
+}

@@ -1,0 +1,11 @@
+# Hookah Baar
+
+> Vibe your hookah online. Hookah Baar is a free browser game for adults (18+) that lets you "smoke" an illustrated hookah with your hands: pick up the pipe, draw, blow. No coal, no tobacco, no real smoke. Hand and face tracking runs on the visitor's own device; nothing is uploaded.
+
+- Site: https://hookah.nycanshu.dev/
+- Traction: 9,000+ people have tried it since launch and the launch posts on X crossed 300k impressions.
+- How it works: close your hand around the pipe to pick it up, bring it to your mouth and breathe in, take it away and blow. An O-shaped mouth makes smoke rings, puffed cheeks make a burst. Rings drift and dissolve naturally, and every puff moves a little differently.
+- Flavours: 16 (Classic, Mint Freeze, Double Apple, Paan Nights, Mango Sunset, Rose Velvet, Kesar Elaichi, Thandai, Rooh Afza, Nimbu Pudina, Chai Sutta, Coconut, Blue Mist, Gulab Jamun, Kala Khatta, Zafrani Paan). Any two can be mixed in any ratio, and a blend can be shared as a link, e.g. https://hookah.nycanshu.dev/?flavour=paan+mint
+- Who it is for: anyone 18+ who misses the hookah lounge vibe, wants a quick hands-on toy in the browser, or wants to show friends a blend. Works on laptops and phones with a camera; no install, no sign-up.
+- Made by Himanshu Kumar (https://github.com/nycanshu, https://www.linkedin.com/in/okay-anshu/).
+- Health notice: smoking is injurious to health. This is a simulation and contains no tobacco or nicotine, so this is not injurious.

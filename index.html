@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hookah Baar — online hookah game you smoke with your hands</title>
+<meta name="description" content="Free virtual hookah simulator in your browser: pick up the hose, draw, blow smoke rings. 16 flavours, fast, no install, no coal or tobacco. 18+.">
+<meta name="theme-color" content="#4A4A4A">
+<link rel="canonical" href="https://hookah.nycanshu.dev/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Hookah Baar — the online hookah lounge">
+<meta property="og:description" content="Pick up the hose with your fist, draw, and blow smoke. Runs entirely in your browser, nothing leaves your device.">
+<meta property="og:url" content="https://hookah.nycanshu.dev/">
+<meta property="og:image" content="https://hookah.nycanshu.dev/assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Hookah Baar — the online hookah lounge">
+<meta name="twitter:description" content="Pick up the hose with your fist, draw, and blow smoke. Runs entirely in your browser, nothing leaves your device.">
+<meta name="twitter:image" content="https://hookah.nycanshu.dev/assets/og.png">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%234A4A4A'/><circle cx='50' cy='50' r='26' fill='none' stroke='%23FFFFE3' stroke-width='9'/><circle cx='50' cy='50' r='26' fill='none' stroke='%236D8196' stroke-width='3' stroke-dasharray='26 20'/></svg>">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preconnect" href="https://hookahbaar.goatcounter.com" crossorigin>
+<script async src="web/visitor-count.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&display=swap" rel="stylesheet">
+<link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.21/vision_bundle.mjs">
+<link rel="preload" href="models/hand_landmarker.task" as="fetch" crossorigin="anonymous">
+<link rel="modulepreload" href="dist/app.min.js">
+<link rel="stylesheet" href="web/style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Hookah Baar",
+  "alternateName": "Hookah Baar — the online hookah lounge",
+  "url": "https://hookah.nycanshu.dev/",
+  "description": "A free browser game for adults that lets you smoke an illustrated hookah with your hands. Hand and face tracking runs on your device; no coal, no tobacco, no real smoke.",
+  "applicationCategory": "EntertainmentApplication",
+  "operatingSystem": "Any",
+  "browserRequirements": "A modern browser and a camera",
+  "isAccessibleForFree": true,
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "INR" },
+  "image": "https://hookah.nycanshu.dev/assets/og.png",
+  "inLanguage": "en",
+  "typicalAgeRange": "18-",
+  "keywords": "online hookah, virtual hookah, hookah bar, online hookah bar, e-hookah, hookah simulator, hookah game, hookah flavours, smoke rings",
+  "author": { "@type": "Person", "name": "Himanshu Kumar", "alternateName": "nycanshu", "url": "https://www.linkedin.com/in/okay-anshu/" }
+}
+</script>
+<script data-goatcounter="https://hookahbaar.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+</head>
+<body>
+<canvas id="stage" aria-label="Hookah Baar camera scene"></canvas>
+<video id="cam" playsinline muted autoplay></video>
+<div class="grain" aria-hidden="true"></div>
+<div class="vignette" aria-hidden="true"></div>
+
+<header class="bar">
+  <a class="brand" href="./" aria-label="Hookah Baar home">
+    <svg class="mark" width="40" height="40" viewBox="0 0 100 100" aria-hidden="true">
+      <circle cx="50" cy="50" r="27" fill="none" stroke="#FFFFE3" stroke-width="9"/>
+      <circle cx="50" cy="50" r="27" fill="none" stroke="#6D8196" stroke-width="3" stroke-dasharray="26 20"/>
+    </svg>
+    <span class="wordmark">
+      <span class="name">Hookah <em>Baar</em></span>
+      <span class="tagline">The online hookah lounge</span>
+    </span>
+  </a>
+
+  <aside id="coach" class="coach" aria-live="polite">
+    <div class="coach-rule"></div>
+    <div class="coach-head">
+      <span id="coach-step" class="step">Step 1 of 3</span>
+      <span id="coach-state" class="state" hidden></span>
+    </div>
+    <p id="coach-hint" class="hint">Close your hand around the pipe to pick it up</p>
+    <div class="gauge">
+      <div class="meter" role="progressbar" aria-label="How full of smoke you are" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="coach-meter">
+        <span id="coach-fill"></span>
+      </div>
+    </div>
+    <p id="coach-debug" class="debug" hidden></p>
+  </aside>
+</header>
+
+<div class="scrim" aria-hidden="true"></div>
+
+<section id="intro" class="sheet" role="dialog" aria-labelledby="intro-title">
+  <p class="eyebrow"><span class="tick"></span>Hookah Baar <span class="badge" id="age-badge">18+</span></p>
+  <h1 id="intro-title">Smoke a hookah<br>with your <em>hands.</em></h1>
+
+  <div id="age" class="age">
+    <p class="age-q" id="age-q">Are you 18 or older?</p>
+    <p class="fine">Hookah Baar is your online hookah partner: a virtual hookah bar and e-hookah simulator that lives in your browser. No tobacco, no nicotine, no real smoke. Made for adults, not an invitation to smoke. <b>Smoking is injurious to health.</b></p>
+    <div class="age-actions">
+      <button id="age-yes" class="btn btn-cta" type="button">Yes, I am 18 or older</button>
+      <button id="age-no" class="btn btn-ghost" type="button">No</button>
+    </div>
+    <p class="fine error" id="age-denied" hidden>Sorry, this page is for adults only.</p>
+  </div>
+
+  <div id="ready" class="ready" hidden>
+  <ol class="steps">
+    <li><span class="num">01</span><span>Close your hand around the pipe to pick it up.</span></li>
+    <li><span class="num">02</span><span>Bring it to your mouth and breathe in.</span></li>
+    <li><span class="num">03</span><span>Take it away and blow the smoke out.</span></li>
+  </ol>
+  <div class="intro-picks">
+    <button id="intro-flavour-open" class="flavour-open intro-flavour-open" type="button" aria-haspopup="dialog" aria-controls="flavour-dialog" aria-expanded="false">
+      <span class="flavour-open-copy"><span class="intro-flavour-title">Pick your flavour</span><span id="intro-flavour-current" class="intro-flavour-current">Classic selected</span></span>
+      <span aria-hidden="true">↗</span>
+    </button>
+    <button id="intro-hookah-open" class="flavour-open intro-flavour-open" type="button" aria-haspopup="dialog" aria-controls="hookah-dialog" aria-expanded="false">
+      <span class="flavour-open-copy"><span class="intro-flavour-title">Pick your hookah</span><span id="intro-hookah-current" class="intro-flavour-current">Classic selected</span></span>
+      <span aria-hidden="true">↗</span>
+    </button>
+  </div>
+  <button id="start" class="btn btn-cta" type="button">Turn on my camera</button>
+  <p class="fine" id="intro-note">Your camera stays on your device. Nothing is recorded or sent anywhere.</p>
+  </div>
+</section>
+
+<div id="hookah-dock" class="hookah-dock" hidden>
+  <p id="hookah-toast" class="flavour-toast hookah-toast" role="status" aria-live="polite"></p>
+  <button id="hookah-open" class="flavour-open hookah-open" type="button" aria-haspopup="dialog" aria-controls="hookah-dialog" aria-expanded="false">
+    <span class="hookah-icon-wrap" aria-hidden="true"><canvas id="hookah-icon" class="hookah-icon"></canvas></span>
+    <span class="flavour-open-copy"><span class="flavour-eyebrow">Pick your hookah</span><span id="hookah-current">Classic</span></span>
+    <span class="flavour-open-action" aria-hidden="true">↗</span>
+  </button>
+</div>
+
+<div id="flavour-dock" class="flavour-dock" hidden>
+  <p id="flavour-toast" class="flavour-toast" role="status" aria-live="polite"></p>
+  <button id="flavour-open" class="flavour-open" type="button" aria-haspopup="dialog" aria-controls="flavour-dialog" aria-expanded="false">
+    <span id="flavour-icon" class="flavour-icon" aria-hidden="true"></span>
+    <span class="flavour-open-copy"><span class="flavour-eyebrow">Pick your flavour</span><span id="flavour-current">Classic</span></span>
+    <span class="flavour-open-action" aria-hidden="true">↗</span>
+  </button>
+</div>
+
+<dialog id="flavour-dialog" class="flavour-dialog" aria-labelledby="flavour-title" aria-describedby="flavour-description">
+  <section class="flavour-card">
+    <div class="flavour-menu-top"><span class="flavour-eyebrow">The house collection / <span id="flavour-count">16</span> flavours</span><button id="flavour-close" class="flavour-close" type="button" aria-label="Close flavour bar">×</button></div>
+    <h2 id="flavour-title">Pick your <em>atmosphere.</em></h2>
+    <p id="flavour-description" class="flavour-description">Pick one to keep it classic. Pick two to make it yours.</p>
+    <p class="flavour-scroll-hint">Scroll the collection · tap a pick again to remove it</p>
+    <div id="flavour-grid" class="flavour-grid" role="group" aria-label="Flavours — pick up to two"></div>
+    <div class="flavour-setup">
+      <p id="flavour-selection-status" class="flavour-selection-status" role="status"></p>
+      <div id="flavour-picked" class="flavour-picked" aria-label="Your selected flavours"></div>
+      <div id="mix-panel" hidden>
+        <div class="mix-proportions"><label for="mix-ratio">Make it your balance</label><output id="mix-percent" for="mix-ratio">50 / 50</output></div>
+        <input id="mix-ratio" type="range" min="0" max="100" value="50" step="1">
+        <p id="mix-recipe" class="flavour-note"></p>
+      </div>
+      <p class="flavour-surprise-quote">A little this. A little that. <br><em>Let the clouds surprise you.</em></p>
+    </div>
+    <div class="flavour-menu-bottom"><button id="flavour-surprise" type="button">Surprise me ↗</button><div class="flavour-actions"><button id="flavour-share" type="button" title="Copy a link that opens this bowl">Share your flavour</button><button id="flavour-cancel" type="button">Cancel</button><button id="flavour-apply" type="button">Load flavour</button></div></div>
+  </section>
+</dialog>
+
+<dialog id="hookah-dialog" class="flavour-dialog hookah-dialog" aria-labelledby="hookah-title" aria-describedby="hookah-description">
+  <section class="flavour-card">
+    <div class="flavour-menu-top"><span class="flavour-eyebrow">The rack / <span id="hookah-count">2</span> hookahs</span><button id="hookah-close" class="flavour-close" type="button" aria-label="Close the rack">×</button></div>
+    <h2 id="hookah-title">Pick your <em>hookah.</em></h2>
+    <p id="hookah-description" class="flavour-description">Same smoke, same flavours. A different piece to smoke them from.</p>
+    <div id="hookah-grid" class="hookah-grid" role="radiogroup" aria-labelledby="hookah-title"></div>
+  </section>
+</dialog>
+
+<footer class="foot">
+  <span id="vibed" class="foot-chip" hidden aria-live="polite"></span>
+  <p class="legal">18+ &middot; A simulation with no tobacco or nicotine.<br>Smoking is injurious to health.</p>
+  <button id="reset" class="foot-btn" type="button" title="Start over (R)">reset</button>
+  <a href="https://www.linkedin.com/in/okay-anshu/" target="_blank" rel="noopener">
+    <span>made with <span class="heart" aria-label="love">&#9829;</span> by nycanshu</span>
+    <svg class="li" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path fill="currentColor" d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.13 1.44-2.13 2.94v5.67H9.35V9h3.42v1.56h.05c.47-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45C23.2 24 24 23.23 24 22.28V1.72C24 .77 23.2 0 22.22 0z"/></svg>
+  </a>
+</footer>
+
+<noscript><p class="noscript">This page needs JavaScript and a camera.</p></noscript>
+<script type="module" src="dist/app.min.js"></script>
+</body>
+</html>
