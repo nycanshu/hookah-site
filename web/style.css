@@ -325,3 +325,58 @@ html, body { margin: 0; height: 100%; background: var(--gray); color: var(--ink)
   .intro-picks .intro-flavour-current { font-size: 10px; }
   .intro-picks .flavour-open > [aria-hidden="true"] { display: none; }
 }
+
+
+/* Zen mode: hide everything except the canvas and hookah */
+.zen-btn {
+  position: fixed; z-index: 6; right: 18px; top: calc(18px + var(--safe-top));
+  width: 38px; height: 38px; display: grid; place-items: center;
+  background: rgba(255, 255, 227, 0.15); backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 227, 0.25); border-radius: 50%;
+  color: var(--ivory); cursor: pointer;
+  opacity: 0; pointer-events: none;
+  transition: opacity .3s, background .16s, transform .16s;
+}
+.zen-btn.show { opacity: 1; pointer-events: auto; }
+.zen-btn:hover { background: rgba(255, 255, 227, 0.28); transform: scale(1.08); }
+.zen-btn:focus-visible { outline: 2px solid var(--slate); outline-offset: 3px; }
+.zen-btn[aria-pressed="true"] { background: rgba(60, 60, 60, 0.65); }
+.zen-btn[aria-pressed="true"] svg { opacity: .5; }
+
+body.zen .bar,
+body.zen .foot,
+body.zen .scrim,
+body.zen .flavour-dock,
+body.zen .hookah-dock,
+body.zen .grain,
+body.zen .vignette,
+body.zen .sheet { opacity: 0 !important; pointer-events: none !important; transition: opacity .35s ease; }
+
+/* Keep the zen button visible and move it when other UI hides */
+body.zen .zen-btn { opacity: .45; }
+body.zen .zen-btn:hover { opacity: 1; }
+
+@media (max-width: 680px) {
+  .zen-btn { right: 14px; top: calc(12px + var(--safe-top)); width: 34px; height: 34px; }
+  .zen-btn svg { width: 15px; height: 15px; }
+}
+
+/* Cloud Snap flash */
+@keyframes snap-flash {
+  0%   { opacity: .85; }
+  100% { opacity: 0; }
+}
+.snap-flash {
+  position: fixed; inset: 0; z-index: 10; background: var(--ivory);
+  pointer-events: none; animation: snap-flash .35s ease-out forwards;
+}
+.snap-toast {
+  position: fixed; z-index: 11; bottom: calc(80px + var(--safe-bottom));
+  left: 50%; transform: translateX(-50%); padding: 11px 20px;
+  background: #30322ff0; color: var(--ivory); border: 1px solid #ffffff25;
+  border-radius: 10px; font-family: var(--serif); font-size: 13px;
+  box-shadow: var(--shadow-soft); opacity: 0; transition: opacity .25s;
+  pointer-events: none; white-space: nowrap;
+}
+.snap-toast.visible { opacity: 1; }

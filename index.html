@@ -176,6 +176,7 @@
   <a class="sibling" href="https://smoke.nycanshu.dev/" target="_blank" rel="noopener" title="Smoke Bar, the sister lounge">
     <span class="ico" aria-hidden="true">&#128684;</span><span class="lbl">try smoke</span><span class="arrow" aria-hidden="true">&#8599;</span>
   </a>
+  <button id="snap" class="foot-btn" type="button" title="Capture your smoke (S)"><span class="ico" aria-hidden="true">&#128247;</span><span class="lbl">snap</span></button>
   <button id="reset" class="foot-btn" type="button" title="Start over (R)"><span class="ico" aria-hidden="true">&#8634;</span><span class="lbl">reset</span></button>
   <a id="chai" class="chai" href="https://checkout.dodopayments.com/buy/pdt_0NoNBmWvORgfoWPPKo5X0?quantity=1&amp;redirect_url=https%3A%2F%2Fhookah.nycanshu.dev%2F" target="_blank" rel="noopener" title="Had fun with the fake hookah? Buy the dev a real chai.">
     <span class="cup" aria-hidden="true">&#9749;</span><span class="lbl">buy me a chai</span>
@@ -186,7 +187,121 @@
   </a>
 </footer>
 
+<button id="zen" class="zen-btn" type="button" title="Hide everything (Z)" aria-label="Toggle zen mode" aria-pressed="false">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+</button>
+
 <noscript><p class="noscript">This page needs JavaScript and a camera.</p></noscript>
+<script>
+// Zen Mode — hide all UI, keep only the hookah and pipe
+(function() {
+  var btn = null;
+  var shown = false;
+
+  function toggle() {
+    var active = document.body.classList.toggle('zen');
+    if (btn) btn.setAttribute('aria-pressed', String(active));
+    btn.title = active ? 'Show UI (Z)' : 'Hide everything (Z)';
+  }
+
+  // Show the zen button only after the intro sheet is dismissed
+  // We observe the intro sheet's hidden attribute
+  function watchIntro() {
+    var intro = document.getElementById('intro');
+    btn = document.getElementById('zen');
+    if (!btn) return;
+
+    function check() {
+      if ((intro && intro.hidden) || intro.classList.contains('leaving')) {
+        btn.classList.add('show');
+        shown = true;
+      }
+    }
+
+    btn.addEventListener('click', toggle);
+    check();
+
+    if (!shown) {
+      var observer = new MutationObserver(function() {
+        check();
+        if (shown) observer.disconnect();
+      });
+      observer.observe(intro, { attributes: true, attributeFilter: ['hidden', 'class'] });
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', watchIntro);
+  } else {
+    watchIntro();
+  }
+
+  // Z key shortcut
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'z' && !e.ctrlKey && !e.metaKey && !e.altKey &&
+        !/INPUT|TEXTAREA|SELECT/.test(e.target.tagName) &&
+        shown) {
+      toggle();
+    }
+  });
+})();
+</script>
+<script>
+// Cloud Snap — capture the hookah scene
+(function() {
+  var toast = null;
+  function showToast(msg) {
+    if (toast) toast.remove();
+    toast = document.createElement('div');
+    toast.className = 'snap-toast visible';
+    toast.textContent = msg;
+    document.body.appendChild(toast);
+    setTimeout(function() { toast.classList.remove('visible'); }, 2800);
+    setTimeout(function() { if (toast) toast.remove(); toast = null; }, 3200);
+  }
+  function flash() {
+    var el = document.createElement('div');
+    el.className = 'snap-flash';
+    document.body.appendChild(el);
+    el.addEventListener('animationend', function() { el.remove(); });
+  }
+  function doSnap() {
+    var canvas = document.getElementById('stage');
+    if (!canvas) return;
+    flash();
+    canvas.toBlob(function(blob) {
+      if (!blob) { showToast('Could not capture.'); return; }
+      var now = new Date();
+      var name = 'hookah-baar-' + now.getFullYear() +
+        String(now.getMonth()+1).padStart(2,'0') +
+        String(now.getDate()).padStart(2,'0') + '-' +
+        String(now.getHours()).padStart(2,'0') +
+        String(now.getMinutes()).padStart(2,'0') +
+        String(now.getSeconds()).padStart(2,'0') + '.png';
+      download(blob, name);
+    }, 'image/png');
+  }
+  function download(blob, name) {
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click();
+    setTimeout(function() { a.remove(); URL.revokeObjectURL(url); }, 100);
+    showToast('Saved \u2014 ' + name);
+  }
+  document.addEventListener('DOMContentLoaded', function() {
+    var btn = document.getElementById('snap');
+    if (btn) btn.addEventListener('click', doSnap);
+  });
+  // S key shortcut
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 's' && !e.ctrlKey && !e.metaKey && !e.altKey &&
+        !/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) {
+      doSnap();
+    }
+  });
+})();
+</script>
 <script type="module" src="dist/app.min.js"></script>
 </body>
 </html>

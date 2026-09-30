@@ -12,6 +12,31 @@ No coal, no tobacco, no sutta. Just vibes.
 
 ---
 
+## What's new 🆕
+
+### 🤝 2-Player — Pass the Hookah
+Sit with a friend in front of the same camera. The app now tracks **two faces**
+at once and automatically picks the one closest to the pipe for draw and exhale
+detection. Whoever has the pipe near their mouth is the active smoker — just
+like passing a real hookah. No toggle, no split screen, it just works.
+
+### 📸 Cloud Snap — Screenshot Your Smoke
+Press **S** or tap the 📷 button in the footer. The screen flashes and a
+timestamped PNG of your entire scene (camera, hookah, smoke, hands) downloads
+instantly. Share your best smoke ring on stories or X.
+
+### 👁 Zen Mode — Hide All UI
+Press **Z** or tap the eye icon in the bottom-left corner. Every piece of UI
+fades away — header, footer, coach, flavour dock, hookah dock, the lot. Only
+the camera feed, the hookah, and the pipe remain. Tap again to bring it all
+back. Perfect for vibing or recording a clean screen.
+
+### 🎯 Smoother Pipe Tracking
+Reduced hand and axis tracking rates so the mouthpiece glides instead of
+jittering from raw tracking noise. Same accuracy, way less shake.
+
+---
+
 ## Made by nycanshu
 
 Hookah Baar is built and maintained by **Himanshu Kumar (nycanshu)** — that's
