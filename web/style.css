@@ -325,3 +325,77 @@ html, body { margin: 0; height: 100%; background: var(--gray); color: var(--ink)
   .intro-picks .intro-flavour-current { font-size: 10px; }
   .intro-picks .flavour-open > [aria-hidden="true"] { display: none; }
 }
+
+/* ---- FAB group: Hide UI + Cloud Snap ------------------------------------ */
+.fab-group {
+  position: fixed; z-index: 5;
+  left: 24px; bottom: calc(24px + var(--safe-bottom));
+  display: flex; flex-direction: column; gap: 10px;
+  pointer-events: auto;
+}
+.fab {
+  display: grid; place-items: center;
+  width: 46px; height: 46px;
+  padding: 0; border: var(--hair); border-radius: 50%;
+  background: var(--ivory); color: var(--charcoal);
+  box-shadow: var(--shadow-soft);
+  cursor: pointer; font-family: var(--serif);
+  transition: background .16s ease, color .16s ease, transform .16s ease, box-shadow .16s ease;
+}
+.fab:hover {
+  background: var(--charcoal); color: var(--ivory);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 26px rgba(35, 35, 35, 0.24);
+}
+.fab:active { transform: translateY(0); box-shadow: var(--shadow-soft); }
+.fab:focus-visible { outline: 2px solid var(--slate); outline-offset: 3px; }
+.fab svg { display: block; }
+
+/* ---- Hide UI state ------------------------------------------------------- */
+body.ui-hidden .bar,
+body.ui-hidden .scrim,
+body.ui-hidden .foot,
+body.ui-hidden .flavour-dock,
+body.ui-hidden .hookah-dock,
+body.ui-hidden .flavour-dialog,
+body.ui-hidden .hookah-dialog,
+body.ui-hidden .sheet,
+body.ui-hidden .grain,
+body.ui-hidden .vignette,
+body.ui-hidden .foot-chip {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transition: opacity .32s ease !important;
+}
+/* Keep the FAB group visible so the user can bring the UI back */
+body.ui-hidden .fab-group { opacity: 1; pointer-events: auto; }
+/* Dim the FABs slightly in hidden mode so they're less intrusive */
+body.ui-hidden .fab-group .fab {
+  opacity: 0.45;
+  transition: opacity .16s ease, background .16s ease, color .16s ease;
+}
+body.ui-hidden .fab-group .fab:hover { opacity: 1; }
+
+/* ---- Cloud Snap flash ---------------------------------------------------- */
+.snap-flash {
+  position: fixed; inset: 0; z-index: 9999;
+  background: #fff; opacity: 0.6;
+  pointer-events: none;
+  transition: opacity .3s ease;
+}
+
+/* ---- FAB responsive ------------------------------------------------------ */
+@media (max-width: 680px) {
+  .fab-group { left: 14px; bottom: calc(18px + var(--safe-bottom)); gap: 8px; }
+  .fab { width: 40px; height: 40px; }
+  .fab svg { width: 17px; height: 17px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fab { transition: none; }
+  .fab:hover { transform: none; }
+  body.ui-hidden .bar, body.ui-hidden .scrim, body.ui-hidden .foot,
+  body.ui-hidden .flavour-dock, body.ui-hidden .hookah-dock,
+  body.ui-hidden .flavour-dialog, body.ui-hidden .hookah-dialog,
+  body.ui-hidden .sheet, body.ui-hidden .grain, body.ui-hidden .vignette { transition: none !important; }
+  .snap-flash { transition: none; }
+}

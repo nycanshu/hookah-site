@@ -170,6 +170,15 @@
   </section>
 </dialog>
 
+<div id="fab-group" class="fab-group">
+  <button id="hide-ui" class="fab" type="button" title="Hide UI (H)" aria-label="Hide all UI elements">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+  </button>
+  <button id="cloud-snap" class="fab" type="button" title="Cloud Snap — download screenshot (S)" aria-label="Take a screenshot and download">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+  </button>
+</div>
+
 <footer class="foot">
   <span id="vibed" class="foot-chip" hidden aria-live="polite"></span>
   <p class="legal">18+ &middot; A simulation with no tobacco or nicotine.<br>Smoking is injurious to health.</p>
@@ -188,5 +197,64 @@
 
 <noscript><p class="noscript">This page needs JavaScript and a camera.</p></noscript>
 <script type="module" src="dist/app.min.js"></script>
+<script>
+(function () {
+  /* ---- Hide UI ---- */
+  const hideBtn = document.getElementById('hide-ui');
+  let uiHidden = false;
+
+  function toggleUI() {
+    uiHidden = !uiHidden;
+    document.body.classList.toggle('ui-hidden', uiHidden);
+    hideBtn.title = uiHidden ? 'Show UI (H)' : 'Hide UI (H)';
+    hideBtn.setAttribute('aria-label', uiHidden ? 'Show all UI elements' : 'Hide all UI elements');
+    // Swap icon to eye-off when hidden
+    hideBtn.querySelector('svg').innerHTML = uiHidden
+      ? '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>'
+      : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+  }
+
+  hideBtn.addEventListener('click', toggleUI);
+
+  /* ---- Cloud Snap ---- */
+  const snapBtn = document.getElementById('cloud-snap');
+
+  function cloudSnap() {
+    const canvas = document.getElementById('stage');
+    if (!canvas) return;
+
+    // Brief flash feedback
+    const flash = document.createElement('div');
+    flash.className = 'snap-flash';
+    document.body.appendChild(flash);
+    requestAnimationFrame(function () {
+      flash.style.opacity = '0';
+    });
+    setTimeout(function () { flash.remove(); }, 350);
+
+    canvas.toBlob(function (blob) {
+      if (!blob) return;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+      a.href = url;
+      a.download = 'hookah-snap-' + ts + '.png';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+    }, 'image/png');
+  }
+
+  snapBtn.addEventListener('click', cloudSnap);
+
+  /* ---- Keyboard shortcuts ---- */
+  document.addEventListener('keydown', function (e) {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    if (e.key === 'h' || e.key === 'H') toggleUI();
+    if (e.key === 's' || e.key === 'S') cloudSnap();
+  });
+})();
+</script>
 </body>
 </html>
